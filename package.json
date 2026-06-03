@@ -1,0 +1,16 @@
+{
+  "name": "acorah-task",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:front": "pnpm --filter todo-app-frontend dev",
+    "dev:back": "pnpm --filter todo-app-backend dev",
+    "build:all": "pnpm --filter \"./apps/**\" build",
+    "test:all": "pnpm -r test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.22.0"
+}
