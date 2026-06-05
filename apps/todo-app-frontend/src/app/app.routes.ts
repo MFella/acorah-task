@@ -6,6 +6,10 @@ export const routes: Routes = [
         path: '',
         component: HomeComponent
     },
+    {
+        path: 'todos',
+        loadComponent: () => import('./components/todos/todos').then(m => m.Todos)
+    },
     //   {
     //     path: 'dashboard',
     //     // Tutaj w przyszłości podepniesz komponent ze swoimi notatkami/todo

@@ -1,4 +1,5 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-nav',
@@ -8,5 +9,7 @@ import { Component, signal } from '@angular/core';
   standalone: true,
 })
 export class Nav {
-  isLoggedIn = signal(true);
+  private readonly authService = inject(AuthService)
+  isLoggedIn = signal(false);
+  currentUser = this.authService.currentUser;
 }
