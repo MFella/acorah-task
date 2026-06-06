@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, effect, inject, signal } from '@angular/core';
 import { rxResource, toObservable } from '@angular/core/rxjs-interop';
-import { API_URL } from '../app.tokens';
+import { API_URL } from '../../app.tokens';
 import { filter, firstValueFrom } from 'rxjs';
 
 export interface User {

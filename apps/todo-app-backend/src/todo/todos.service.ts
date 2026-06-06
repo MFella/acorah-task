@@ -7,9 +7,10 @@ import { User } from "./entities/user.entity";
 import { GetUserResponseDto } from "./dtos/get-user.dto";
 
 @Injectable()
-export class ToDoService implements OnApplicationBootstrap {
+export class TodosService implements OnApplicationBootstrap {
+    static readonly GUEST_ID = 123;
     private static readonly GUEST_FULL_NAME = 'Guest User';
-    private static readonly GUEST_ID = 123;
+    private static readonly BLANK_LIST_NAME = "Untilted";
 
     constructor(
         @InjectRepository(TodoList)
@@ -23,7 +24,7 @@ export class ToDoService implements OnApplicationBootstrap {
     }
 
     private async seedGuestUser() {
-        const existingGuest = await this.userRepository.findOne({ where: { fullName: ToDoService.GUEST_FULL_NAME } });
+        const existingGuest = await this.userRepository.findOne({ where: { fullName: TodosService.GUEST_FULL_NAME } });
 
         if (existingGuest) {
             console.log('🌱: Guest user already exists. Skipping...');
@@ -32,14 +33,14 @@ export class ToDoService implements OnApplicationBootstrap {
 
         console.log('🌱:Creating default guest user...');
         const guestUser = this.userRepository.create({
-            fullName: ToDoService.GUEST_FULL_NAME,
-            id: ToDoService.GUEST_ID,
+            fullName: TodosService.GUEST_FULL_NAME,
+            id: TodosService.GUEST_ID,
         });
 
         const savedUser = await this.userRepository.save(guestUser);
 
         const defaultList = this.todoListRepository.create({
-            name: `${ToDoService.GUEST_FULL_NAME} first list`,
+            name: `${TodosService.GUEST_FULL_NAME} first list`,
             user: savedUser,
         });
 
@@ -58,7 +59,7 @@ export class ToDoService implements OnApplicationBootstrap {
     }
 
     async getGuestUser(): Promise<GetUserResponseDto> {
-        let guestFromDb = await this.userRepository.findOne({ where: { id: ToDoService.GUEST_ID } });
+        let guestFromDb = await this.userRepository.findOne({ where: { id: TodosService.GUEST_ID } });
 
         if (!guestFromDb) {
             console.error("Guest user didn't seed");
@@ -68,5 +69,17 @@ export class ToDoService implements OnApplicationBootstrap {
             }
         }
         return guestFromDb;
+    }
+
+    async createBlankTodoList(userId: number): Promise<void> {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new InternalServerErrorException("Cannot possess guest user");
+        }
+        const todoList = this.todoListRepository.create({
+            name: TodosService.BLANK_LIST_NAME,
+            user,
+        });
+        await this.todoListRepository.save(todoList);
     }
 }

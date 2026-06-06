@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from './database/database.module';
-import { ToDoModule } from './todo/todo.module';
+import { TodosModule } from './todo/todos.module';
 
 @Module({
-  imports: [DatabaseModule, ToDoModule],
+  imports: [DatabaseModule, TodosModule],
 })
 export class AppModule { }

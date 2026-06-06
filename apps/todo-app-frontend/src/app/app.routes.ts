@@ -8,7 +8,11 @@ export const routes: Routes = [
     },
     {
         path: 'todos',
-        loadComponent: () => import('./components/todos/todos').then(m => m.Todos)
+        loadComponent: () => import('./components/todos/todos-preview.component').then(m => m.TodosPreviewComponent)
+    },
+    {
+        path: 'todos/:id',
+        loadComponent: () => import('./components/todo/todo.component').then(m => m.TodoComponent)
     },
     //   {
     //     path: 'dashboard',
