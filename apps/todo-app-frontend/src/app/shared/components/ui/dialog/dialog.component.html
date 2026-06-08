@@ -1,0 +1,18 @@
+<dialog #dialogNative (cancel)="handleClose()"
+    class="overflow-y-auto scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0 w-full max-w-md p-6 bg-gray-900 border border-gray-800 rounded-2xl text-gray-100 shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm">
+    <div class="flex items-center justify-between pb-4 border-b border-gray-800 mb-4">
+        <h3 class="text-lg font-bold tracking-tight text-gray-200">{{ title() }}</h3>
+        <button (click)="handleClose()"
+            class="hover:cursor-pointer text-gray-400 hover:text-gray-200 p-1 px-2 rounded-lg hover:bg-gray-800 transition-colors">
+            ✕
+        </button>
+    </div>
+
+    <div class="text-sm text-gray-300 mb-6">
+        <ng-content select="[body]"></ng-content>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-800">
+        <ng-content select="[actions]"></ng-content>
+    </div>
+</dialog>

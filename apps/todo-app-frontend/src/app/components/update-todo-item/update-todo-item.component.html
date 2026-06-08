@@ -1,0 +1,74 @@
+<div class="max-w-2xl mx-auto mt-12 p-6 bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl text-gray-100">
+
+    <h2 class="text-xl font-extrabold tracking-tight text-gray-100 mb-6 pb-3 border-b border-gray-800">
+        Create / Edit List Item
+    </h2>
+
+    <form [formGroup]="form" (ngSubmit)="submitForm()" class="space-y-5">
+        <div class="grid grid-cols-12 gap-4 items-center">
+            <label for="name" class="col-span-3 text-sm font-semibold text-gray-400">
+                Name:
+            </label>
+            <div class="col-span-9">
+                <input type="text" id="name" formControlName="name" placeholder="Enter item description..."
+                    class="w-full px-4 py-2.5 bg-gray-800/50 border rounded-xl text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                    [class.border-red-500]="isNameInvalid" [class.border-gray-700]="!isNameInvalid"
+                    [class.focus:border-indigo-500]="!isNameInvalid" />
+                @if (isNameInvalid) {
+                <p class="text-xs text-red-400 mt-1.5 font-medium">Item name is explicitly required.</p>
+                }
+            </div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 items-center">
+            <label class="col-span-3 text-sm font-semibold text-gray-400">
+                Is completed?:
+            </label>
+            <div class="col-span-9">
+                <label class="relative flex items-center w-fit cursor-pointer select-none">
+                    <input type="checkbox" formControlName="isCompleted" class="sr-only peer" />
+                    <div
+                        class="w-5 h-5 border-2 rounded-md transition-colors flex items-center justify-center peer-checked:border-emerald-500 peer-checked:bg-emerald-600 border-gray-600 hover:border-indigo-400">
+                        <svg class="w-3.5 h-3.5 text-white scale-0 peer-checked:scale-100 transition-transform duration-150"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 items-center">
+            <label for="dueDate" class="col-span-3 text-sm font-semibold text-gray-400">
+                Due date:
+            </label>
+            <div class="col-span-9 relative">
+                <input type="date" id="dueDate" formControlName="dueDate"
+                    class="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700 focus:border-indigo-500 rounded-xl text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/40 color-scheme-dark" />
+            </div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 items-center" [class.opacity-40]="form.controls.completionDate.disabled">
+            <label for="completionDate" class="col-span-3 text-sm font-semibold text-gray-400">
+                Completion date:
+            </label>
+            <div class="col-span-9 relative">
+                <input type="date" id="completionDate" formControlName="completionDate" placeholder="(not completed)"
+                    class="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700 focus:border-indigo-500 disabled:bg-gray-800/20 disabled:border-gray-800/80 disabled:text-gray-600 rounded-xl text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/40 color-scheme-dark" />
+            </div>
+        </div>
+
+        <div class="flex items-center justify-center gap-4 mt-8 pt-4 border-t border-gray-800">
+            <button type="submit" [disabled]="form.invalid"
+                class="px-6 py-2.5 rounded-xl text-sm font-bold tracking-wide bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-950/20 disabled:opacity-40 disabled:hover:bg-emerald-600 transition-all cursor-pointer">
+                Save
+            </button>
+
+            <button type="button" (click)="discardChanges()"
+                class="px-6 py-2.5 rounded-xl text-sm font-bold tracking-wide bg-red-900/40 hover:bg-red-900/70 text-red-300 border border-red-800/40 transition-all cursor-pointer">
+                Cancel
+            </button>
+        </div>
+
+    </form>
+</div>

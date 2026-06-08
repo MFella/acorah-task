@@ -14,7 +14,7 @@ export interface Todo {
   selector: 'app-todos-preview',
   imports: [RouterLink, DatePipe],
   templateUrl: './todos-preview.component.html',
-  styleUrl: './todos-preview.component.css',
+  styleUrl: './todos-preview.component.css'
 })
 export class TodosPreviewComponent {
   private router = inject(Router);

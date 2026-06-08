@@ -1,10 +1,12 @@
-import { Injectable, InternalServerErrorException, OnApplicationBootstrap } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, NotFoundException, OnApplicationBootstrap } from "@nestjs/common";
 import { GetAllListsResponseDto } from "./dtos/get-all-lists.dto";
 import { TodoList } from "./entities/todo-list.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { User } from "./entities/user.entity";
 import { GetUserResponseDto } from "./dtos/get-user.dto";
+import { GetTodoListResponseDto } from "./dtos/get-todo-list.dto";
+import { UpdateTodoListItemResponseDto } from "./dtos/update-todo-list-item.dto";
 
 @Injectable()
 export class TodosService implements OnApplicationBootstrap {
@@ -81,5 +83,24 @@ export class TodosService implements OnApplicationBootstrap {
             user,
         });
         await this.todoListRepository.save(todoList);
+    }
+
+    async getTodoList(userId: number, id: number): Promise<GetTodoListResponseDto> {
+        const listFromDb = await this.todoListRepository.findOne({
+            where: { id, user: { id: userId } },
+            relations: {
+                items: true,
+            }
+        });
+
+        if (!listFromDb) {
+            throw new NotFoundException(`List not found: ${id}`);
+        }
+
+        return listFromDb;
+    }
+
+    async updateTodoListItem(): Promise<UpdateTodoListItemResponseDto> {
+        return { status: 0 };
     }
 }

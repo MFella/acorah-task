@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AboutModal } from './about-modal';
+import { UpdateTodoItemComponent } from './update-todo-item.component';
 
-describe('AboutModal', () => {
-  let component: AboutModal;
-  let fixture: ComponentFixture<AboutModal>;
+describe('UpdateTodoItemComponent', () => {
+  let component: UpdateTodoItemComponent;
+  let fixture: ComponentFixture<UpdateTodoItemComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AboutModal],
+      imports: [UpdateTodoItemComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AboutModal);
+    fixture = TestBed.createComponent(UpdateTodoItemComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
