@@ -31,6 +31,6 @@ export class TodosPreviewComponent {
 
     // We can also not navigate, and just add that brand new todoList to the list
     // Its up to us
-    // this.todoLists.update(lists => [...lists, createdTodoList]);
+    this.todoLists.update(lists => [...lists, createdTodoList]);
   }
 }

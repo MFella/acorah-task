@@ -36,11 +36,7 @@ export const httpErrorInterceptor: HttpInterceptorFn = (req, next) => {
                 }
             }
 
-            // 🚀 Trigger global UI action (Console, Toast notifications, etc.)
-            console.error('Captured via Global Interceptor:', errorMessage);
-
             toastService.show(errorMessage, "error");
-            // Pass the error down the line to local subscribers/resources
             return throwError(() => error);
         })
     );

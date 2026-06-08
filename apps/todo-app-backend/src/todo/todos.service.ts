@@ -154,7 +154,6 @@ export class TodosService implements OnApplicationBootstrap {
         try {
             Object.assign(todoListItemFromDb, updateTodoListItemRequest)
             await this.todoListItemRepository.save(todoListItemFromDb);
-            console.log(todoListItemFromDb, updateTodoListItemRequest)
             return { updatedItem: todoListItemFromDb };
         } catch (err: unknown) {
             // We should avoid propagating whole 'error' object there
