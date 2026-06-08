@@ -6,8 +6,8 @@ import { DialogComponent } from "../../shared/components/ui/dialog/dialog.compon
   selector: 'app-home',
   standalone: true,
   imports: [RouterLink, DialogComponent],
-  templateUrl: './home.html',
-  styleUrl: './home.css'
+  templateUrl: './home.component.html',
+  styleUrl: './home.component.css'
 })
 export class HomeComponent {
   isAboutModalOpen = signal<boolean>(false);

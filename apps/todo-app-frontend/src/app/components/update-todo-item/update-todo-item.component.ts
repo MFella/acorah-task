@@ -1,12 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, ElementRef, inject, input, output, viewChild } from '@angular/core';
+import { Component, effect, ElementRef, inject, input, output, } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { TodoListItem } from '../../services/todos/todos.service';
 
 export interface TodoItemDetails {
+  id?: string;
   name: string;
   isCompleted: boolean;
-  dueDate: string; // YYYY-MM-DD for native input binding
-  completionDate: string | null;
+  // YYYY-MM-DD for native input binding
+  dueDate?: string;
+  completionDate?: string | null;
 }
 
 @Component({
@@ -16,11 +19,9 @@ export interface TodoItemDetails {
   styleUrl: './update-todo-item.component.css',
 })
 export class UpdateTodoItemComponent {
-  dialogRef = viewChild<ElementRef<HTMLDialogElement>>("dialogRef");
-
   private fb = inject(NonNullableFormBuilder);
 
-  initialData = input<TodoItemDetails | null>(null);
+  initialData = input<TodoListItem>();
   save = output<TodoItemDetails>();
   cancel = output<void>();
 
@@ -38,8 +39,8 @@ export class UpdateTodoItemComponent {
         this.form.patchValue({
           name: data.name,
           isCompleted: data.isCompleted,
-          dueDate: data.dueDate,
-          completionDate: data.completionDate ?? ''
+          dueDate: data.dueDate?.split('T')[0],
+          completionDate: data.completionDate?.split('T')[0] ?? ''
         });
       }
     });
@@ -76,7 +77,8 @@ export class UpdateTodoItemComponent {
       name: formValue.name,
       isCompleted: formValue.isCompleted,
       dueDate: formValue.dueDate,
-      completionDate: formValue.isCompleted ? formValue.completionDate : null
+      completionDate: formValue.isCompleted ? formValue.completionDate : null,
+      id: this.initialData()?.id
     });
   }
 
@@ -85,11 +87,7 @@ export class UpdateTodoItemComponent {
     this.cancel.emit();
   }
 
-  openModal() {
-    this.dialogRef()?.nativeElement.showModal();
-  }
-
-  closeModal() {
-    this.dialogRef()?.nativeElement.close();
+  resetForm(): void {
+    this.form.reset();
   }
 }

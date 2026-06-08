@@ -27,6 +27,10 @@ export class TodosPreviewComponent {
   async createBlankNewList(): Promise<void> {
     const createdTodoList = await this.todosService.createBlankTodoList();
 
-    this.todoLists.update(lists => [...lists, createdTodoList]);
+    this.router.navigate(['/todos', createdTodoList.id]);
+
+    // We can also not navigate, and just add that brand new todoList to the list
+    // Its up to us
+    // this.todoLists.update(lists => [...lists, createdTodoList]);
   }
 }

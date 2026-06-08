@@ -12,7 +12,6 @@ export class AuthGuard implements CanActivate {
         // For now just setting up userId to Guest
         request.userId = TodosService.GUEST_ID;
 
-        console.log("userId: ", request.userId);
         return true;
     }
 }

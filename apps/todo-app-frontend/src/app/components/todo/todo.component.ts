@@ -1,72 +1,153 @@
-import { DatePipe } from '@angular/common';
-import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
+import { DatePipe, isPlatformBrowser } from '@angular/common';
+import { Component, computed, effect, inject, input, linkedSignal, OnInit, PLATFORM_ID, signal, viewChild } from '@angular/core';
 import { TodoListItem, TodosService } from '../../services/todos/todos.service';
+import { DialogComponent } from "../../shared/components/ui/dialog/dialog.component";
+import { TodoItemDetails, UpdateTodoItemComponent } from "../update-todo-item/update-todo-item.component";
+import { RouterLink } from '@angular/router';
+
+type UpdateTodoListItemModalType = "Create" | "Edit";
+
+type UpdateModalOpenedPayload = {
+  isOpened: boolean;
+  type?: UpdateTodoListItemModalType;
+  item?: TodoListItem;
+}
 
 @Component({
   selector: 'app-todo',
   standalone: true,
-  imports: [DatePipe],
+  imports: [DatePipe, DialogComponent, UpdateTodoItemComponent, RouterLink],
   templateUrl: './todo.component.html',
   styleUrl: './todo.component.css',
 })
-export class TodoComponent {
+export class TodoComponent implements OnInit {
   id = input.required<string>();
+  private readonly updateTodoItemDialogRef = viewChild<UpdateTodoItemComponent>("updateTodoItemDialog");
+
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  showCompleted = signal<boolean>(this.isBrowser ? localStorage.getItem('show-completed') === 'true' : false);
+  isUpdateModalOpened = signal<UpdateModalOpenedPayload>({
+    isOpened: false,
+    type: 'Create'
+  });
+  todoEditItem = computed<TodoListItem | undefined>(() => this.isUpdateModalOpened().item);
+  updateModalTitle = computed(() => `${this.isUpdateModalOpened().type ?? "Update"} list item`)
 
   todosService = inject(TodosService);
-  readonly todoListResource = this.todosService.getTodoListResource(this.id);
-  todoList = this.todoListResource.value;
-  // Title of the currently selected space
-  listName = signal<string>('My great TODO list');
 
-  // Filter state toggle
-  showCompleted = signal<boolean>(false);
+  readonly todoListResource = this.todosService.getTodoListResource;
 
   // `linkedSignal` since we want to create positive UI
   todoListItems = linkedSignal(() => {
+    const todoListItemsMap = this.todoListResource.value().items;
+    for (const [_, item] of todoListItemsMap.entries()) {
+      // Imitate the UI with "not completed" task 
+      if (!item.isCompleted) {
+        item.completionDate = null;
+      }
+    }
     return this.todoListResource.value().items;
+  }, {
+    // We persist only one reference of map (comparing them doesn't make any sense)
+    equal: () => false
   });
-  // signal<TodoListItem[]>([
-  //   { id: '1', name: 'Clean the carpet', dueDate: new Date('2024-04-18'), completedDate: null, isCompleted: false },
-  //   { id: '2', name: 'Dust the furniture', dueDate: new Date('2024-04-10'), completedDate: null, isCompleted: false },
-  //   { id: '3', name: 'Clean windows', dueDate: null, completedDate: null, isCompleted: false },
-  //   { id: '4', name: 'Walk the dog', dueDate: null, completedDate: null, isCompleted: false },
-  // ]);
+
+  todoListTitle = linkedSignal(() => this.todoListResource.value().name)
 
   // Computed signal to handle the live filtering reactively
   filteredItems = computed(() => {
     if (this.showCompleted()) {
-      return this.todoListItems();
+      return [...this.todoListItems()].map(([_, value]) => value);
     }
-    return this.todoListItems().filter(item => !item.isCompleted);
+    return [...this.todoListItems()].filter(([_, item]) => !item.isCompleted).map(([_, value]) => value);
   });
+
+  constructor() {
+    effect(() => {
+      if (this.isBrowser) {
+        localStorage.setItem('show-completed', String(this.showCompleted()))
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    this.todosService.setGetTodoListParams(this.id());
+  }
 
   toggleShowCompleted(): void {
     this.showCompleted.update(v => !v);
   }
 
-  toggleItemCompletion(id: string): void {
-    this.todoListItems.update(items => items.map(item => {
-      if (item.id === id) {
-        const nextStatus = !item.isCompleted;
-        return {
-          ...item,
-          isCompleted: nextStatus,
-          completedDate: nextStatus ? new Date() : null
-        };
+  toggleItemCompletion(todoListItem: TodoListItem): void {
+    this.todosService.saveTodoItem(this.id(), {
+      name: todoListItem.name,
+      id: todoListItem.id,
+      isCompleted: !todoListItem.isCompleted
+    }).subscribe({
+      next: ({ updatedItem }) => {
+        // Don't know how to handle "unselection" - should we persist completionDate?
+        if (!updatedItem.isCompleted) {
+          updatedItem.completionDate = null;
+        }
+        this.todoListItems.update(items => {
+          items.set(updatedItem.id, updatedItem);
+          return items;
+        });
       }
-      return item;
-    }));
+    });
+
   }
 
-  editItem(id: string): void {
-    console.log('Trigger edit mode for item:', id);
+  deleteItem(todoItemId: string): void {
+    this.todosService.deleteTodoItem(this.id(), todoItemId).subscribe({
+      next: () => {
+        this.todoListItems.update(items => {
+          items.delete(todoItemId);
+          return items;
+        });
+      }
+    });
+
   }
 
-  deleteItem(id: string): void {
-    this.todoListItems.update(items => items.filter(item => item.id !== id));
+  saveTodoItem(todoItemDetails: TodoItemDetails): void {
+    const { dueDate, completionDate, id, ...rest } = todoItemDetails;
+    this.todosService.saveTodoItem(
+      this.id(),
+      {
+        ...(dueDate ? { dueDate: new Date(dueDate).toISOString() } : {}),
+        // That needs to be refactored
+        ...(completionDate ? { completionDate: rest.isCompleted ? new Date(completionDate).toISOString() : null } : {}),
+        ...(id ? { id } : {}),
+        ...rest,
+      }
+    ).subscribe({
+      next: ({ updatedItem }) => {
+        if (this.todoListItems().has(updatedItem.id)) {
+          this.todoListItems.update(items => {
+            items.set(updatedItem.id, updatedItem);
+            return items;
+          });
+        } else {
+          this.todoListItems.update(items => {
+            items.set(updatedItem.id, updatedItem);
+            return items;
+          });
+        }
+
+      },
+      error: (error: unknown) => {
+        console.error('Failed to save todo item', error);
+      },
+      complete: () => {
+        this.isUpdateModalOpened.set({ isOpened: false });
+      }
+    })
   }
 
-  addItem(): void {
-    console.log('Open add item modal/inline input');
+  dialogClosed(): void {
+    this.isUpdateModalOpened.set({ isOpened: false });
+    this.updateTodoItemDialogRef()?.resetForm();
   }
 }

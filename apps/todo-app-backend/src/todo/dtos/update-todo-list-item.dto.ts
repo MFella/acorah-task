@@ -1,8 +1,14 @@
-import { IsBoolean, IsDate, IsEnum, IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
-import { OperationStatus } from "../../common/common";
+import { IsBoolean, IsDate, IsDefined, IsEnum, IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { TodoItem } from "../entities/todo-item.entity";
 
 export class UpdateTodoListItemRequestDto {
+    @IsNumber()
+    @IsOptional()
+    id?: number;
+
     @IsString()
+    @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
     @IsNotEmpty()
     name: string;
 
@@ -13,9 +19,15 @@ export class UpdateTodoListItemRequestDto {
     @IsBoolean()
     @IsNotEmpty()
     isCompleted: boolean;
+
+    @IsISO8601()
+    @IsOptional()
+    completionDate?: string;
 }
 
 export class UpdateTodoListItemResponseDto {
-    @IsEnum(OperationStatus)
-    status: OperationStatus;
+    @IsDefined()
+    @ValidateNested()
+    @Type(() => TodoItem)
+    updatedItem!: TodoItem;
 }

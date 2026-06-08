@@ -1,10 +1,10 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, InputSignal, linkedSignal, Signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, InputSignal, linkedSignal, signal, Signal, WritableSignal } from '@angular/core';
 import { API_URL } from '../../app.tokens';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { AuthService } from '../auth/auth.service';
-import { TodoList } from '../../components/todos/types/todo-list-preview';
-import { firstValueFrom, map } from 'rxjs';
+import { TodoList } from '../../components/todos-preview/types/todo-list-preview';
+import { firstValueFrom, map, Observable, of } from 'rxjs';
+import { TodoItemDetails } from '../../components/update-todo-item/update-todo-item.component';
 
 export type GetAllTodoListsResponseDto = {
   lists: TodoList[];
@@ -13,8 +13,10 @@ export type GetAllTodoListsResponseDto = {
 export type TodoListItem = {
   id: string;
   name: string;
-  dueDate: Date | null;
-  completedDate: Date | null;
+  // ISOString
+  dueDate: string | null;
+  // ISOString
+  completionDate: string | null;
   isCompleted: boolean;
 };
 
@@ -24,11 +26,23 @@ export type GetTodoListResponseDto = {
   items: TodoListItem[];
 };
 
+export type UpdateTodoListItemRequestDto = {
+  // We can distinguish whether we want to add new item or update existing by checking if id is provided
+  id?: number;
+  name?: string;
+  dueDate?: Date | null;
+  isCompleted?: boolean;
+  completedDate?: Date | null;
+};
+
+export type UpdateTodoListItemResponseDto = {
+  updatedItem: TodoListItem;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class TodosService {
-
   private readonly httpClient = inject(HttpClient);
   private readonly apiUrl = inject(API_URL);
 
@@ -37,23 +51,46 @@ export class TodosService {
     defaultValue: []
   });
 
-  readonly getTodoListResource = (todoListIdGetter: InputSignal<string>) => rxResource({
-    stream: () => this.httpClient.get<GetTodoListResponseDto>(`${this.apiUrl}/todo/${todoListIdGetter()}`),
+  private readonly getTodoListParams = signal<string | null>(null);
+
+  readonly getTodoListResource = rxResource({
+    params: () => this.getTodoListParams(),
+    stream: ({ params }) => {
+      if (!params) {
+        return of({
+          id: 0,
+          items: new Map<string, TodoListItem>(),
+          name: ''
+        })
+      }
+      return this.httpClient.get<GetTodoListResponseDto>(`${this.apiUrl}/todo/${params}`).pipe(map(({ items, ...rest }) => ({
+        ...rest,
+        items: new Map<string, TodoListItem>(items.map(item => [item.id, item]))
+      })))
+    },
     defaultValue: {
       id: 0,
-      items: [],
+      items: new Map<string, TodoListItem>(),
       name: ''
     }
   });
 
-  private readonly createTodoListResource = rxResource({
-    stream: () => this.httpClient.post(`${this.apiUrl}/todo/list`, {})
-  });
-
-  todoLists = linkedSignal<TodoList[]>(() => this.getTodoListsResource.value());
+  private readonly todoLists = linkedSignal<TodoList[]>(() => this.getTodoListsResource.value());
 
   getTodoLists(): WritableSignal<TodoList[]> {
     return this.todoLists;
+  }
+
+  setGetTodoListParams(todoListId: string): void {
+    this.getTodoListParams.set(todoListId);
+  }
+
+  saveTodoItem(todoListId: string, todoItemDetails: TodoItemDetails): Observable<UpdateTodoListItemResponseDto> {
+    return this.httpClient.post<UpdateTodoListItemResponseDto>(`${this.apiUrl}/todo/${todoListId}`, todoItemDetails)
+  }
+
+  deleteTodoItem(todoListId: string, todoItemId: string) {
+    return this.httpClient.delete(`${this.apiUrl}/todo/${todoListId}?itemId=${todoItemId}`);
   }
 
   createBlankTodoList(): Promise<TodoList> {

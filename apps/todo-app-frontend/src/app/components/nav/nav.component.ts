@@ -5,11 +5,11 @@ import { RouterLink, RouterLinkActive } from "@angular/router";
 @Component({
   selector: 'app-nav',
   imports: [RouterLink, RouterLinkActive],
-  templateUrl: './nav.html',
-  styleUrl: './nav.css',
+  templateUrl: './nav.component.html',
+  styleUrl: './nav.component.css',
   standalone: true,
 })
-export class Nav {
+export class NavComponent {
   private readonly authService = inject(AuthService)
   isLoggedIn = signal(false);
   currentUser = this.authService.currentUser;

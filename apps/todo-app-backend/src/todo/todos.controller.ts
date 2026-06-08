@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, UseGuards } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
 import { GetAllListsResponseDto } from "./dtos/get-all-lists.dto";
 import { TodosService } from "./todos.service";
 import { GetUserId } from "../auth/get-user-id";
 import { AuthGuard } from "../auth/auth.guard";
 import { GetTodoListResponseDto } from "./dtos/get-todo-list.dto";
 import { UpdateTodoListItemRequestDto, UpdateTodoListItemResponseDto } from "./dtos/update-todo-list-item.dto";
+import { DeleteTodoListItemDto } from "./dtos/delete-todo-list-item.dto";
 
 @Controller("todo")
 @UseGuards(AuthGuard)
@@ -31,12 +32,25 @@ export class TodosController {
     }
 
     @Get(":id")
-    async getTodoList(@GetUserId() userId: number, @Param("id", ParseIntPipe) id: number): Promise<GetTodoListResponseDto> {
-        return this.todoService.getTodoList(userId, id);
+    async getTodoList(@GetUserId() userId: number, @Param("id", new ParseIntPipe({
+        exceptionFactory: () => new BadRequestException("Provided todo list id must be valid integer.")
+    })) todoListId: number): Promise<GetTodoListResponseDto> {
+        return this.todoService.getTodoList(userId, todoListId);
     }
 
     @Post(":id")
-    async updateTodoListItem(@GetUserId() userId: number, @Param("id", ParseIntPipe) id: number, @Body() updateTodoListItemRequest: UpdateTodoListItemRequestDto): Promise<UpdateTodoListItemResponseDto> {
-        return this.todoService.updateTodoListItem();
+    async updateTodoListItem(@GetUserId() userId: number, @Param("id", new ParseIntPipe({
+        exceptionFactory: () => new BadRequestException("Provided todo list id must be valid integer.")
+    })) todoListId: number, @Body() updateTodoListItemRequest: UpdateTodoListItemRequestDto): Promise<UpdateTodoListItemResponseDto> {
+        return this.todoService.updateTodoListItem(userId, todoListId, updateTodoListItemRequest);
+    }
+
+    @Delete(":id")
+    async deleteTodoItem(@GetUserId() userId: number, @Param("id", new ParseIntPipe({
+        exceptionFactory: () => new BadRequestException("Provided todo list id must be valid integer.")
+    })) todoListId: number, @Query('itemId', new ParseIntPipe({
+        exceptionFactory: () => new BadRequestException("Provided todo item id must be valid integer.")
+    })) itemId: number): Promise<DeleteTodoListItemDto> {
+        return this.todoService.deleteTodoListItem(userId, todoListId, itemId);
     }
 }
