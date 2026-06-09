@@ -1,6 +1,6 @@
-# TodoApp - Monorepo Task Manager
+# TodoApp - Todo List tool
 
-TodoApp is a modern, full-stack monorepo Task Manager application designed for extreme responsiveness and clean state management. It features a NestJS REST API backend using SQLite (TypeORM) and a modern Angular frontend utilizing Signals, zoneless change detection, and reactive resources.
+TodoApp is a full-stack monorepo application designed for managing user todo tasks. It features a NestJS REST API backend using SQLite (TypeORM) and a modern Angular frontend utilizing Signals, zoneless change detection, and reactive resources.
 
 ---
 
@@ -37,6 +37,20 @@ acorah-task/
 *   **Global Error Handling:** Implements an HTTP interceptor (`httpErrorInterceptor`) to capture and categorize HTTP error responses globally.
 
 ---
+
+## Database relationships
+
+Relationship between entities depicts below diagram:
+
+```mermaid
+flowchart LR
+    User[User] -- "&lt;one to many&gt;" --> TodoList[TodoList]
+    TodoList -- "&lt;one to many&gt;" --> TodoItem[TodoItem]
+
+    style User fill:#111827,stroke:#374151,stroke-width:2px,color:#fff
+    style TodoList fill:#111827,stroke:#374151,stroke-width:2px,color:#fff
+    style TodoItem fill:#111827,stroke:#374151,stroke-width:2px,color:#fff
+```
 
 ## 🚀 How to Run in Development
 
